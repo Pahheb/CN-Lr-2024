@@ -11,7 +11,7 @@ Network configuration using Linksys WRT54GS routers.
 1. Download and run the [Virtual Machine](http://www.it.uc3m.es/fvalera/ro/labuc3m.html)
 2. Update the simulator **twice**
 ```
-lightning update
+lightning update && lightning update
 ```
 
 ## Part I: Simple network interconnection
@@ -24,20 +24,24 @@ Desired configuration:
 
 ![scenario2](img/scenario1.png)
 
-| Network |    Segment    |
-|---------|:-------------:|
-| `A`     | `10.0.3.0/24` |
-| `B`     | `10.0.4.0/24` |
-| `RA-RB` | `10.0.0.0/30` |
+NIA = The last 2 digits of your NIA
 
-| Device | Interface |       IP      |
-|--------|-----------|:-------------:|
-| `RA`   | `eth0.0`  | `10.0.3.2/24` |
-|        | `eth0.1`  | `10.0.0.1/30` |
-| `RB`   | `eth0.0`  | `10.0.4.2/24` |
-|        | `eth0.1`  | `10.0.0.2/30` |
-| `PCA`  | `eth1`    | `10.0.3.1/24` |
-| `PCB`  | `eth1`    | `10.0.4.1/24` | 
+| Network |       Segment       |
+|---------|:-------------------:|
+| `A`     | `172.16.NIA.0/25`   |
+| `B`     | `172.16.NIA+1.0/25` |
+| `RA-RB` | `172.16.0.0/30`     |
+
+It is strongly recommended that you make the routers have the first **non-reserved** IP address within the subnet range
+
+| Device | Interface |          IP         |
+|--------|-----------|:-------------------:|
+| `RA`   | `eth0.0`  | `172.16.NIA.1/25`   |
+|        | `eth0.1`  | `172.16.0.1/30`     |
+| `RB`   | `eth0.0`  | `172.16.NIA+1.1/25` |
+|        | `eth0.1`  | `172.16.0.2/30`     |
+| `PCA`  | `eth1`    | `172.16.NIA.2/25`   |
+| `PCB`  | `eth1`    | `172.16.NIA+1.2/25` | 
 
 ### Remove the default IP addresses assigned to the `eth0.0` through `eth0.4` and `wlan0` interfaces in the routers.
 
@@ -54,7 +58,7 @@ inet=192.168.0.1/24
 ```
 RA# configure terminal  # enter config mode
 RA(config)# interface eth0.0  # select interface
-RA(config-if)# no ip adress 192.168.0.1/24  # pre-configured IP (one received with show interface)
+RA(config-if)# no ip address 192.168.0.1/24  # pre-configured IP (one received with show interface)
 RA(config-if)# exit
 ```
 
@@ -76,7 +80,7 @@ student@PCA:~$ ip a
 [...]
 3: eth1@[...]
 [...]
-inet=192.100.101/24  # default PCA IP
+inet=192.100.100.101/24  # default PCA IP
 [...]
 ```
 Remove the default IP.
@@ -92,14 +96,14 @@ Do the same for PCB.
 
 Add IP to `PCA`.
 ```
-student@PCA:~$ sudo ip addr add 10.0.3.1/24 dev eth1
+student@PCA:~$ sudo ip addr add 172.16.NIA.2/25 dev eth1
 ```
 
 Configure `RA` interface w/ `PCA`.
 ```
 RA# configure terminal
 RA(config)# interface eth0.0
-RA(config-ip)# ip address 10.0.3.2/24
+RA(config-ip)# ip address 172.16.NIA.1/25
 RA(config-ip)# exit 
 RA(config)# exit
 ```
@@ -108,7 +112,7 @@ Verify that the router and the host can reach each other using the ping command.
 
 Check that you can ping from `PCA` to `RA`.
 ```
-student@PCA:~$ ping 10.0.3.2
+student@PCA:~$ ping 172.16.NIA.1
 ```
 
 
@@ -119,7 +123,7 @@ Assign IP addresses to the interfaces that connect both routers.
 ```
 RA# configure terminal
 RA(config)# interface eth0.1
-RA(config-ip)# ip address 10.0.0.1/30
+RA(config-ip)# ip address 172.16.0.1/30
 RA(config-ip)# exit 
 RA(config)# exit
 ```
@@ -127,7 +131,7 @@ RA(config)# exit
 ```
 RB# configure terminal
 RB(config)# interface eth0.1
-RB(config-ip)# ip address 10.0.0.2/30
+RB(config-ip)# ip address 172.16.0.2/30
 RB(config-ip)# exit
 RB(config)# exit
 ```
@@ -135,75 +139,75 @@ RB(config)# exit
 Verify that routers can reach each other using the ping command.
 
 ```
-RA# ping 10.0.0.2
+RA# ping 172.16.0.2/30
 ```
 ```
-RB# ping 10.0.0.1
+RB# ping 172.16.0.1/30
 ```
 
 ### Assign an IP address to the interface of `RB` connected to Network `B`
 
 Add IP to `PCB`.
 ```
-student@PCB:~$ sudo ip addr add 10.0.4.1/24 dev eth1
+student@PCB:~$ sudo ip addr add 172.16.NIA+1.2/25 dev eth1
 ```
 
 Configure `RB` interface w/ `PCB`.
 ```
 RB# configure terminal
 RB(config)# interface eth0.0
-RB(config-ip)# ip address 10.0.4.2/24
+RB(config-ip)# ip address 172.16.NIA+1.1/25
 RB(config-ip)# exit 
 RB(config)# exit
 ```
 
 Verify that the router and the host can reach each other using the ping command.
 
-Check that you can ping from `PCA` to `RA`.
+Check that you can ping from `PCB` to `RB`.
 ```
-student@PCB:~$ ping 10.0.4.2
+student@PCB:~$ ping 172.16.NIA+1.1/25
 ```
 
 
 ### Configure in both routers the routing table entries so that router A can reach network B and vice versa
 
-Forward stuff to Network `B` (`10.0.4.0/24`) through `RB` `eth0.1` (`10.0.0.2`).
+Forward stuff to Network `B` (`172.16.NIA+1.0/25`) through `RB` `eth0.1` (`172.16.0.2`).
 ```
 RA# configure terminal
-RA(config)# ip route 10.0.4.0/24 10.0.0.2
+RA(config)# ip route 172.16.NIA+1.0/25 172.16.0.2
 ```
 
-Forward stuff to Network `A` (`10.0.3.0/24`) through `RA` `eth0.1` (`10.0.0.1`).
+Forward stuff to Network `A` (`172.16.NIA.0/25`) through `RA` `eth0.1` (`172.16.0.1`).
 
 ```
 RB# configure terminal
-RB(config)# ip route 10.0.4.0/24 10.0.0.1
+RB(config)# ip route 172.16.NIA.0/25 172.16.0.1
 ```
 
 ### Configure the routing tables in `PCA` so it can reach Network `B`
 
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`10.0.4.0/24`) through `RA` `eth0.0` (`10.0.3.2`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`172.16.NIA+1.0/25`) through `RA` `eth0.0` (`172.16.NIA.1`).
 ```
-student@PCA:~$ sudo ip route add default via 10.0.3.2
-student@PCA:~$ sudo ip route add 10.0.4.0/24 via 10.0.3.2
+student@PCA:~$ sudo ip route add default via 172.16.NIA.1
+student@PCA:~$ sudo ip route add 172.16.NIA+1.0/25 via 172.16.NIA.1
 ```
 
 ### Perform the corresponding settings in PCB
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`10.0.3.0/24`) through `RB` `eth0.0` (`10.0.4.2`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`172.16.NIA.0/25`) through `RB` `eth0.0` (`172.16.NIA+1.1`).
 ```
-student@PCB:~$ sudo ip route add default via 10.0.4.2
-student@PCB:~$ sudo ip route add 10.0.3.0/24 via 10.0.4.2
+student@PCB:~$ sudo ip route add default via 172.16.NIA+1.1
+student@PCB:~$ sudo ip route add 172.16.NIA.0/25 via 172.16.NIA+1.1
 ```
 
 ### Use the `ping` and `traceroute` command from `PCA` to `PCB`
 
 ```
-student@PCA:~$ ping 10.0.4.1
-student@PCB:~$ ping 10.0.3.1
+student@PCA:~$ ping 172.16.NIA+1.2
+student@PCB:~$ ping 172.16.NIA.2
 ```
 ```
-student@PCA:~$ traceroute -n 10.0.4.1
-student@PCB:~$ traceroute -n 10.0.3.1
+student@PCA:~$ traceroute -n 172.16.NIA+1.2
+student@PCB:~$ traceroute -n 172.16.NIA.2
 ```
 
 Close lightning with
