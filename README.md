@@ -24,24 +24,25 @@ Desired configuration:
 
 ![scenario2](img/scenario1.png)
 
-NIA = The last 2 digits of your NIA
+**A = The last 2 digits of your NIA**
+**B = A + 1**
 
 | Network |       Segment       |
 |---------|:-------------------:|
-| `A`     | `172.16.NIA.0/25`   |
-| `B`     | `172.16.NIA+1.0/25` |
+|   `A`   | `172.16.A.0/25`     |
+|   `B`   | `172.16.B.0/25`     |
 | `RA-RB` | `172.16.0.0/30`     |
 
 It is strongly recommended that you make the routers have the first **non-reserved** IP address within the subnet range
 
 | Device | Interface |          IP         |
 |--------|-----------|:-------------------:|
-| `RA`   | `eth0.0`  | `172.16.NIA.1/25`   |
-|        | `eth0.1`  | `172.16.0.1/30`     |
-| `RB`   | `eth0.0`  | `172.16.NIA+1.1/25` |
-|        | `eth0.1`  | `172.16.0.2/30`     |
-| `PCA`  | `eth1`    | `172.16.NIA.2/25`   |
-| `PCB`  | `eth1`    | `172.16.NIA+1.2/25` | 
+|  `RA`  |  `eth0.0` | `172.16.A.1/25`     |
+|        |  `eth0.1` | `172.16.0.1/30`     |
+|  `RB`  |  `eth0.0` | `172.16.B.1/25`     |
+|        |  `eth0.1` | `172.16.0.2/30`     |
+|  `PCA` |   `eth1`  | `172.16.A.2/25`     |
+|  `PCB` |   `eth1`  | `172.16.B.2/25`     | 
 
 ### Remove the default IP addresses assigned to the `eth0.0` through `eth0.4` and `wlan0` interfaces in the routers.
 
@@ -96,14 +97,14 @@ Do the same for PCB.
 
 Add IP to `PCA`.
 ```
-student@PCA:~$ sudo ip addr add 172.16.NIA.2/25 dev eth1
+student@PCA:~$ sudo ip addr add 172.16.A.2/25 dev eth1
 ```
 
 Configure `RA` interface w/ `PCA`.
 ```
 RA# configure terminal
 RA(config)# interface eth0.0
-RA(config-ip)# ip address 172.16.NIA.1/25
+RA(config-ip)# ip address 172.16.A.1/25
 RA(config-ip)# exit 
 RA(config)# exit
 ```
@@ -112,7 +113,7 @@ Verify that the router and the host can reach each other using the ping command.
 
 Check that you can ping from `PCA` to `RA`.
 ```
-student@PCA:~$ ping 172.16.NIA.1
+student@PCA:~$ ping 172.16.A.1
 ```
 
 
@@ -149,14 +150,14 @@ RB# ping 172.16.0.1/30
 
 Add IP to `PCB`.
 ```
-student@PCB:~$ sudo ip addr add 172.16.NIA+1.2/25 dev eth1
+student@PCB:~$ sudo ip addr add 172.16.B.2/25 dev eth1
 ```
 
 Configure `RB` interface w/ `PCB`.
 ```
 RB# configure terminal
 RB(config)# interface eth0.0
-RB(config-ip)# ip address 172.16.NIA+1.1/25
+RB(config-ip)# ip address 172.16.B.1/25
 RB(config-ip)# exit 
 RB(config)# exit
 ```
@@ -165,49 +166,49 @@ Verify that the router and the host can reach each other using the ping command.
 
 Check that you can ping from `PCB` to `RB`.
 ```
-student@PCB:~$ ping 172.16.NIA+1.1/25
+student@PCB:~$ ping 172.16.B.1/25
 ```
 
 
 ### Configure in both routers the routing table entries so that router A can reach network B and vice versa
 
-Forward stuff to Network `B` (`172.16.NIA+1.0/25`) through `RB` `eth0.1` (`172.16.0.2`).
+Forward stuff to Network `B` (`172.16.B.0/25`) through `RB` `eth0.1` (`172.16.0.2`).
 ```
 RA# configure terminal
-RA(config)# ip route 172.16.NIA+1.0/25 172.16.0.2
+RA(config)# ip route 172.16.B.0/25 172.16.0.2
 ```
 
-Forward stuff to Network `A` (`172.16.NIA.0/25`) through `RA` `eth0.1` (`172.16.0.1`).
+Forward stuff to Network `A` (`172.16.A.0/25`) through `RA` `eth0.1` (`172.16.0.1`).
 
 ```
 RB# configure terminal
-RB(config)# ip route 172.16.NIA.0/25 172.16.0.1
+RB(config)# ip route 172.16.A.0/25 172.16.0.1
 ```
 
 ### Configure the routing tables in `PCA` so it can reach Network `B`
 
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`172.16.NIA+1.0/25`) through `RA` `eth0.0` (`172.16.NIA.1`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`172.16.B.0/25`) through `RA` `eth0.0` (`172.16.A.1`).
 ```
-student@PCA:~$ sudo ip route add default via 172.16.NIA.1
-student@PCA:~$ sudo ip route add 172.16.NIA+1.0/25 via 172.16.NIA.1
+student@PCA:~$ sudo ip route add default via 172.16.A.1
+student@PCA:~$ sudo ip route add 172.16.B.0/25 via 172.16.A.1
 ```
 
 ### Perform the corresponding settings in PCB
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`172.16.NIA.0/25`) through `RB` `eth0.0` (`172.16.NIA+1.1`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`172.16.A.0/25`) through `RB` `eth0.0` (`172.16.B.1`).
 ```
-student@PCB:~$ sudo ip route add default via 172.16.NIA+1.1
-student@PCB:~$ sudo ip route add 172.16.NIA.0/25 via 172.16.NIA+1.1
+student@PCB:~$ sudo ip route add default via 172.16.B.1
+student@PCB:~$ sudo ip route add 172.16.A.0/25 via 172.16.B.1
 ```
 
 ### Use the `ping` and `traceroute` command from `PCA` to `PCB`
 
 ```
-student@PCA:~$ ping 172.16.NIA+1.2
-student@PCB:~$ ping 172.16.NIA.2
+student@PCA:~$ ping 172.16.B.2
+student@PCB:~$ ping 172.16.A.2
 ```
 ```
-student@PCA:~$ traceroute -n 172.16.NIA+1.2
-student@PCB:~$ traceroute -n 172.16.NIA.2
+student@PCA:~$ traceroute -n 172.16.B.2
+student@PCB:~$ traceroute -n 172.16.A.2
 ```
 
 Close lightning with
@@ -226,75 +227,77 @@ Configuration:
 
 ![scenario2](img/scenario2.png)
 
-We'll use the `10.0.98.0/24` segment.
+**A = The last 2 digits of your NIA**
+
+We'll use the `10.0.A.0/24` segment.
 
 | Network |      Segment      |
 |---------|-------------------|
-| `O1`    | `10.0.98.0/25`    |
-| `O2`    | `10.0.98.128/27`  |
-| `S`     | `10.0.98.160/28`  |
-| `R1-R2` | `10.0.98.176/30`  |
-| `R1-R3` | `10.0.98.180/30`  |
-| `R2-R3` | `10.0.98.184/30`  |
-| `R3-R4` | `10.0.98.188/30`  |
-| `I`     | `10.0.0.0/24`     |
-| `M`     | `10.0.0.100/24`   |
+|   `O1`  | `10.0.A.0/25`     |
+|   `O2`  | `10.0.A.128/27`   |
+|   `S`   | `10.0.A.160/28`   |
+| `R1-R2` | `10.0.A.176/30`   |
+| `R1-R3` | `10.0.A.180/30`   |
+| `R2-R3` | `10.0.A.184/30`   |
+| `R3-R4` | `10.0.A.188/30`   |
+|   `I`   | `10.0.0.0/24`     |
+|   `M`   | `10.0.0.100/24`   |
 
 | Device    | Interface |       IP          |
 |-----------|-----------|-------------------|
-| `R1`      | `eth0.0`  | `10.0.98.1/25`    |
-|           | `eth0.1`  | `10.0.98.182/30`  |
-|           | `eth0.2`  | `10.0.98.177/30`  |
-| `R2`      | `eth0.1`  | `10.0.98.129/27`  |
-|           | `eth0.2`  | `10.0.98.178/30`  |
-|           | `eth0.3`  | `10.0.98.185/30`  |
-| `R3`      | `eth0.1`  | `10.0.98.161/28`  |
-|           | `eth0.2`  | `10.0.98.189/30`  |
-|           | `eth0.3`  | `10.0.98.181/30`  |
-|           | `eth0.4`  | `10.0.98.186/30`  |
-| `R4`      | `eth0.1`  | `10.0.0.69/24`    |
-|           | `eth0.2`  | `10.0.98.190/30`  |
-| `hstOfi1` | `eth1`    | `10.0.98.2/25`    |
-| `hstOfi2` | `eth1`    | `10.0.98.130/27`  |
-| `R100`    | `eth0.0`  | `10.0.100.100/24` |
+|   `R1`    | `eth0.1`  | `10.0.A.1/25`     |
+|           | `eth0.2`  | `10.0.A.182/30`   |
+|           | `eth0.3`  | `10.0.A.177/30`   |
+|   `R2`    | `eth0.1`  | `10.0.A.129/27`   |
+|           | `eth0.2`  | `10.0.A.178/30`   |
+|           | `eth0.3`  | `10.0.A.185/30`   |
+|   `R3`    | `eth0.1`  | `10.0.A.161/28`   |
+|           | `eth0.2`  | `10.0.A.189/30`   |
+|           | `eth0.3`  | `10.0.A.181/30`   |
+|           | `eth0.4`  | `10.0.A.186/30`   |
+|   `R4`    | `eth0.1`  | `10.0.0.69/24`    |
+|           | `eth0.2`  | `10.0.A.190/30`   |
+| `hstOfi1` | `eth1`    | `10.0.A.2/25`     |
+| `hstOfi2` | `eth1`    | `10.0.A.130/27`   |
+|   `R100`  | `eth0.0`  | `10.0.100.100/24` |
 |           | `eth0.1`  | `10.0.0.100/24`   |
 
 **DO NOT TOUCH R100.**
 
 ### Assign IP addresses to the router interfaces
-(for each router `Rx`, each interface `eth0.y`)
+(for each router `RX`, each interface `eth0.Y`)
 ```
-Rx# configure terminal
-Rx(config)# interface eth0.y
-Rx(config-if)# no ip adress <old_ip>
-Rx(config-ip)# ip address <new_ip>  # ip with prefix
-Rx(config-ip)# exit 
-Rx(config)# exit
+RX# configure terminal
+RX(config)# interface eth0.Y
+RX(config-if)# no ip address <old_ip>
+RX(config-ip)# ip address <new_ip>  # ip with prefix
+RX(config-ip)# exit 
+RX(config)# exit
 ```
 
 Also remember to delete wlan0
 
 ### Assign IP addresses to the hosts
-(for each host `hstOfix`):
+(for each host `hstOfiX`):
 ```
-student@hstOfix:~$ ip a  # show ip
-student@hstOfix:~$ sudo ip addr del <old_ip> dev eth1
-student@hstOfix:~$ sudo ip addr add <new_ip> dev eth1  # ip with prefix
+student@hstOfiX:~$ ip a  # show ip
+student@hstOfiX:~$ sudo ip addr del <old_ip> dev eth1
+student@hstOfiX:~$ sudo ip addr add <new_ip> dev eth1  # ip with prefix
 ```
 
 ### Check that connectivity exists between PCs `hstOfi1`, `hstOfi2` and the routers `R1`, `R2`
 
-Ping from hstOfix to Ry (for each host hstOfix, router Ry):
+Ping from hstOfiX to RY (for each host hstOfiX, router RY):
 ```
-student@hstOfix:~$ ping <ip Ry eth0.1>  # ip without prefix
-Ry ping <ip hstOfix>
+student@hstOfiX:~$ ping <ip RY eth0.1>  # ip without prefix
+RY# ping <ip hstOfiX>
 ```
 
 ### Check connectivity in each of the point-to-point network that interconnects the routers
-Ping from `Rx` `ethi` to `Ry` `ethj` (for each pair of routers in the same network, using the correct interfaces, the ones "pointing" to the other router)
+Ping from `RX` `ethI` to `RY` `ethJ` (for each pair of routers in the same network, using the correct interfaces, the ones "pointing" to the other router)
 ```
-Rx# ping <ip Ry ethj>
-Ry# ping <ip Rx ethi>
+RX# ping <ip RY ethJ>
+RY# ping <ip RX ethI>
 ```
 
 ### Configure the required static routes in the routers (routing tables)
@@ -305,87 +308,87 @@ The routing tables are:
 R1
 | Network | Destination      |    Next Hop   | Metric |
 |---------|------------------|---------------|:------:|
-| `O2`    | `10.0.98.128/27` | `10.0.98.178` | 1      |
-|         | `10.0.98.128/27` | `10.0.98.181` | 5      |
-| `S`     | `10.0.98.160/28` | `10.0.98.181` | 1      |
-|         | `10.0.98.160/28` | `10.0.98.178` | 5      |
-| `R2-R3` | `10.0.98.184/30` | `10.0.98.178` | 1      |
-|         | `10.0.98.184/30` | `10.0.98.181` | 5      |
-| `R3-R4` | `10.0.98.188/30` | `10.0.98.178` | 1      |
-|         | `10.0.98.188/30` | `10.0.98.181` | 5      |
-| `I`     | `10.0.0.0/24`    | `10.0.98.181` | 1      |
-|         | `10.0.0.0/24`    | `10.0.98.178` | 5      |
-| `M`     | `10.0.100.0/24`  | `10.0.98.181` | 1      |
-|         | `10.0.100.0/24`  | `10.0.98.178` | 5      |
+| `O2`    | `10.0.A.128/27`  | `10.0.A.178`  | 1      |
+|         | `10.0.A.128/27`  | `10.0.A.181`  | 5      |
+| `S`     | `10.0.A.160/28`  | `10.0.A.181`  | 1      |
+|         | `10.0.A.160/28`  | `10.0.A.178`  | 5      |
+| `R2-R3` | `10.0.A.184/30`  | `10.0.A.178`  | 1      |
+|         | `10.0.A.184/30`  | `10.0.A.181`  | 5      |
+| `R3-R4` | `10.0.A.188/30`  | `10.0.A.178`  | 1      |
+|         | `10.0.A.188/30`  | `10.0.A.181`  | 5      |
+| `I`     | `10.0.0.0/24`    | `10.0.A.181`  | 1      |
+|         | `10.0.0.0/24`    | `10.0.A.178`  | 5      |
+| `M`     | `10.0.100.0/24`  | `10.0.A.181`  | 1      |
+|         | `10.0.100.0/24`  | `10.0.A.178`  | 5      |
 
 
 R2
 | Network | Destination      |    Next Hop   | Metric |
 |---------|------------------|---------------|:------:|
-| `O1`    | `10.0.98.0/25`   | `10.0.98.177` | 1      |
-|         | `10.0.98.0/25`   | `10.0.98.186` | 5      |
-| `S`     | `10.0.98.160/28` | `10.0.98.186` | 1      |
-|         | `10.0.98.160/28` | `10.0.98.177` | 5      |
-| `R1-R3` | `10.0.98.180/30` | `10.0.98.177` | 1      |
-|         | `10.0.98.180/30` | `10.0.98.186` | 5      |
-| `R3-R4` | `10.0.98.188/30` | `10.0.98.186` | 1      |
-|         | `10.0.98.188/30` | `10.0.98.177` | 5      |
-| `I`     | `10.0.0.0/24`    | `10.0.98.186` | 1      |
-|         | `10.0.0.0/24`    | `10.0.98.177` | 5      |
-| `M`     | `10.0.100.0/24`  | `10.0.98.186` | 1      |
-|         | `10.0.100.0/24`  | `10.0.98.177` | 5      |
+| `O1`    | `10.0.A.0/25`    | `10.0.A.177`  | 1      |
+|         | `10.0.A.0/25`    | `10.0.A.186`  | 5      |
+| `S`     | `10.0.A.160/28`  | `10.0.A.186`  | 1      |
+|         | `10.0.A.160/28`  | `10.0.A.177`  | 5      |
+| `R1-R3` | `10.0.A.180/30`  | `10.0.A.177`  | 1      |
+|         | `10.0.A.180/30`  | `10.0.A.186`  | 5      |
+| `R3-R4` | `10.0.A.188/30`  | `10.0.A.186`  | 1      |
+|         | `10.0.A.188/30`  | `10.0.A.177`  | 5      |
+| `I`     | `10.0.0.0/24`    | `10.0.A.186`  | 1      |
+|         | `10.0.0.0/24`    | `10.0.A.177`  | 5      |
+| `M`     | `10.0.100.0/24`  | `10.0.A.186`  | 1      |
+|         | `10.0.100.0/24`  | `10.0.A.177`  | 5      |
 
 
 R3
 | Network | Destination      |    Next Hop   | Metric |
 |---------|------------------|---------------|:------:|
-| `O1`    | `10.0.98.0/25`   | `10.0.98.182` | 1      |
-|         | `10.0.98.0/25`   | `10.0.98.185` | 5      |
-| `O2`    | `10.0.98.128/27` | `10.0.98.185` | 1      |
-|         | `10.0.98.128/27` | `10.0.98.182` | 5      |
-| `R1-R2` | `10.0.98.176/30` | `10.0.98.182` | 1      |
-|         | `10.0.98.176/30` | `10.0.98.185` | 5      |
-| `I`     | `10.0.0.0/24`    | `10.0.98.190` | 1      |
-| `M`     | `10.0.100.0/24`  | `10.0.98.190` | 1      |
+| `O1`    | `10.0.A.0/25`    | `10.0.A.182`  | 1      |
+|         | `10.0.A.0/25`    | `10.0.A.185`  | 5      |
+| `O2`    | `10.0.A.128/27`  | `10.0.A.185`  | 1      |
+|         | `10.0.A.128/27`  | `10.0.A.182`  | 5      |
+| `R1-R2` | `10.0.A.176/30`  | `10.0.A.182`  | 1      |
+|         | `10.0.A.176/30`  | `10.0.A.185`  | 5      |
+| `I`     | `10.0.0.0/24`    | `10.0.A.190`  | 1      |
+| `M`     | `10.0.100.0/24`  | `10.0.A.190`  | 1      |
 
 
 R4
 | Network | Destination      |    Next Hop   | Metric |
 |---------|------------------|---------------|:------:|
-| *       | `10.0.98.0/24`   | `10.0.98.189` | 1      |
+| *       | `10.0.A.0/24`    | `10.0.A.189`  | 1      |
 
 The metrics are used to set the priority of each route. By default, it's `1` (max priority), so set the secondary routes to `5` (you can leave the rest empty).
 
-Let's configure the tables (for each router `Rx`, each entry in the routing table)
+Let's configure the tables (for each router `RX`, each entry in the routing table)
 ```
-Rx# configure terminal
-Rx(config)# ip route <dest> <next hop> <metric>
+RX# configure terminal
+RX(config)# ip route <dest> <next hop> <metric>
 ```
 
 You can check the configuration with:
 ```
-Rx# show ip route
+RX# show ip route
 ```
 
 To delete a configured route:
 ```
-Rx(config)# no ip route <dest> <next hop>
+RX(config)# no ip route <dest> <next hop>
 ```
 
 ### Configure the required static routes in the hosts (routing tables)
-(for each host `hstOfix` connected to router `Ry`)
+(for each host `hstOfiX` connected to router `RY`)
 ```
-student@hstOfix:~$ sudo ip route add default via <ip Ry eth0.1>
+student@hstOfiX:~$ sudo ip route add default via <ip RY eth0.1>
 ```
 
 You can check the configuration with:
 ```
-student@hstOfix:~$ ip route
+student@hstOfiX:~$ ip route
 ```
 
 To delete a configured route:
 ```
-student@hstOfix:~$ sudo ip route del <dest> <next hop>
+student@hstOfiX:~$ sudo ip route del <dest> <next hop>
 ```
 
 ### Check the network is connected
@@ -393,10 +396,10 @@ You can both use `ping` and `traceroute` (`traceroute` is more useful for debugg
 
 Let's check if it reaches from `hstOfi1` to `hstOfi2`, and vice versa.
 ```
-student@hstOfi1:~$ ping 10.0.98.130
+student@hstOfi1:~$ ping 10.0.A.130
 ```
 ```
-student@hstOfi2:~$ ping 10.0.98.2
+student@hstOfi2:~$ ping 10.0.A.2
 ```
 
 Now let's check it reaches outside.
@@ -427,7 +430,7 @@ R2(config-if)# no shutdown
 
 And traceroute:
 ```
-student@hstOfi1:~$ traceroute -n 10.0.98.130
+student@hstOfi1:~$ traceroute -n 10.0.A.130
 ```
 
 
