@@ -1,7 +1,8 @@
 # Routing Lab
+
 By Luis Daniel Casais Mezquida & Javier Moreno Yébenes  
 Adapted by Konstantin Rannev  
-Computer Networks 22/23  
+Computer Networks 22/23 -> 24/25  
 Bachelor's Degree in Computer Science and Engineering, grp. 89  
 Universidad Carlos III de Madrid
 
@@ -10,6 +11,7 @@ Network configuration using Linksys WRT54GS routers.
 
 
 ## Part 0: Setup
+
 1. Download and run the [Virtual Machine](http://www.it.uc3m.es/fvalera/ro/labuc3m.html)
 2. Update the simulator **twice**
 ```
@@ -49,8 +51,7 @@ It is strongly recommended that you make the routers have the first **non-reserv
 |  `PCB` |   `eth1`  | `172.16.B.2/25`     | 
 
 
-### Remove the default IP addresses assigned to the `eth0.0` through `eth0.4` and `wlan0` interfaces in the routers.
-
+### Remove the default IP addresses assigned to the `eth0.0` through `eth0.4` and `wlan0` interfaces in the routers
 ```
 RA# show interface eth0.0
 ```
@@ -68,8 +69,7 @@ RA(config-if)# no ip address 192.168.0.1/24  # pre-configured IP (one received w
 RA(config-if)# exit
 ```
 
-Do the same for `eth0.1`, `eth0.2`, `eth0.3`, `eth0.4`, `wlan0`, and for router `RB`.
-
+Do the same for `eth0.1`, `eth0.2`, `eth0.3`, `eth0.4`, `wlan0`, and for router `RB`:
 ```
 RA(config)# exit
 RA# show interface eth0.0  # to check if it was done correctly, inet shouldn't show
@@ -77,8 +77,7 @@ RA# show interface eth0.0  # to check if it was done correctly, inet shouldn't s
 
 
 ### Assign an IP address to the Ethernet interface `eth1` of computer `PCA` that is connected to Network `A`
-
-First we see the asigned IPs for `PCA` and `PCB`.
+First we see the asigned IPs for `PCA` and `PCB`:
 ```
 student@PCA:~$ ip a
 ```
@@ -90,8 +89,8 @@ student@PCA:~$ ip a
 inet=192.100.100.101/24  # default PCA IP
 [...]
 ```
-Remove the default IP.
 
+Remove the default IP:
 ```
 student@PCA:~$ sudo ip addr del 192.100.100.101/24 dev eth1
 ```
@@ -100,13 +99,12 @@ Do the same for PCB.
 
 
 ### Assign an IP address to the interface of `RA` that is connected to the Network `A`
-
-Add IP to `PCA`.
+Add IP to `PCA`:
 ```
 student@PCA:~$ sudo ip addr add 172.16.A.2/25 dev eth1
 ```
 
-Configure `RA` interface w/ `PCA`.
+Configure `RA` interface w/ `PCA`:
 ```
 RA# configure terminal
 RA(config)# interface eth0.0
@@ -115,18 +113,16 @@ RA(config-ip)# exit
 RA(config)# exit
 ```
 
-Verify that the router and the host can reach each other using the ping command.
+Let's verify that the router and the host can reach each other using the ping command.
 
-Check that you can ping from `PCA` to `RA`.
+Check that you can ping from `PCA` to `RA`:
 ```
 student@PCA:~$ ping 172.16.A.1
 ```
 
 
-### Connect `RA` and `RB` through their Ethernet interfaces.
-
-Assign IP addresses to the interfaces that connect both routers.
-
+### Connect `RA` and `RB` through their Ethernet interfaces
+Assign IP addresses to the interfaces that connect both routers:
 ```
 RA# configure terminal
 RA(config)# interface eth0.1
@@ -143,8 +139,7 @@ RB(config-ip)# exit
 RB(config)# exit
 ```
 
-Verify that routers can reach each other using the ping command.
-
+Verify that routers can reach each other using the ping command:
 ```
 RA# ping 172.16.0.2/30
 ```
@@ -154,13 +149,12 @@ RB# ping 172.16.0.1/30
 
 
 ### Assign an IP address to the interface of `RB` connected to Network `B`
-
-Add IP to `PCB`.
+Add IP to `PCB`:
 ```
 student@PCB:~$ sudo ip addr add 172.16.B.2/25 dev eth1
 ```
 
-Configure `RB` interface w/ `PCB`.
+Configure `RB` interface w/ `PCB`:
 ```
 RB# configure terminal
 RB(config)# interface eth0.0
@@ -169,24 +163,22 @@ RB(config-ip)# exit
 RB(config)# exit
 ```
 
-Verify that the router and the host can reach each other using the ping command.
+Let's verify that the router and the host can reach each other using the ping command.
 
-Check that you can ping from `PCB` to `RB`.
+Check that you can ping from `PCB` to `RB`:
 ```
 student@PCB:~$ ping 172.16.B.1/25
 ```
 
 
 ### Configure in both routers the routing table entries so that router A can reach network B and vice versa
-
-Forward stuff to Network `B` (`172.16.B.0/25`) through `RB` `eth0.1` (`172.16.0.2`).
+Forward stuff to Network `B` (`172.16.B.0/25`) through `RB` `eth0.1` (`172.16.0.2`):
 ```
 RA# configure terminal
 RA(config)# ip route 172.16.B.0/25 172.16.0.2
 ```
 
-Forward stuff to Network `A` (`172.16.A.0/25`) through `RA` `eth0.1` (`172.16.0.1`).
-
+Forward stuff to Network `A` (`172.16.A.0/25`) through `RA` `eth0.1` (`172.16.0.1`):
 ```
 RB# configure terminal
 RB(config)# ip route 172.16.A.0/25 172.16.0.1
@@ -194,8 +186,7 @@ RB(config)# ip route 172.16.A.0/25 172.16.0.1
 
 
 ### Configure the routing tables in `PCA` so it can reach Network `B`
-
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`172.16.B.0/25`) through `RA` `eth0.0` (`172.16.A.1`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `B` (`172.16.B.0/25`) through `RA` `eth0.0` (`172.16.A.1`):
 ```
 student@PCA:~$ sudo ip route add default via 172.16.A.1
 student@PCA:~$ sudo ip route add 172.16.B.0/25 via 172.16.A.1
@@ -203,7 +194,7 @@ student@PCA:~$ sudo ip route add 172.16.B.0/25 via 172.16.A.1
 
 
 ### Perform the corresponding settings in PCB
-Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`172.16.A.0/25`) through `RB` `eth0.0` (`172.16.B.1`).
+Route stuff to the outside (`default`/`0.0.0.0/0`), and Network `A` (`172.16.A.0/25`) through `RB` `eth0.0` (`172.16.B.1`):
 ```
 student@PCB:~$ sudo ip route add default via 172.16.B.1
 student@PCB:~$ sudo ip route add 172.16.A.0/25 via 172.16.B.1
@@ -211,7 +202,6 @@ student@PCB:~$ sudo ip route add 172.16.A.0/25 via 172.16.B.1
 
 
 ### Use the `ping` and `traceroute` command from `PCA` to `PCB`
-
 ```
 student@PCA:~$ ping 172.16.B.2
 student@PCB:~$ ping 172.16.A.2
@@ -221,7 +211,7 @@ student@PCA:~$ traceroute -n 172.16.B.2
 student@PCB:~$ traceroute -n 172.16.A.2
 ```
 
-Close lightning with
+Close lightning with:
 ```
 student@uc3m:~$ lightning stop
 ```
@@ -229,7 +219,7 @@ student@uc3m:~$ lightning stop
 
 ## Part II: Network configuration
 
-### Start the VM and load the scenario.
+### Start the VM and load the scenario
 ```
 student@uc3m:~$ lightning start RYSCA/p_encam_a
 ```
@@ -278,7 +268,7 @@ We'll use the `10.0.A.0/24` segment.
 
 
 ### Assign IP addresses to the router interfaces
-(for each router `RX`, each interface `eth0.Y`)
+(for each router `RX`, each interface `eth0.Y`):
 ```
 RX# configure terminal
 RX(config)# interface eth0.Y
@@ -301,7 +291,6 @@ student@hstOfiX:~$ sudo ip addr add <new_ip> dev eth1  # ip with prefix
 
 
 ### Check that connectivity exists between PCs `hstOfi1`, `hstOfi2` and the routers `R1`, `R2`
-
 Ping from hstOfiX to RY (for each host hstOfiX, router RY):
 ```
 student@hstOfiX:~$ ping <ip RY eth0.1>  # ip without prefix
@@ -310,7 +299,7 @@ RY# ping <ip hstOfiX>
 
 
 ### Check connectivity in each of the point-to-point network that interconnects the routers
-Ping from `RX` `ethI` to `RY` `ethJ` (for each pair of routers in the same network, using the correct interfaces, the ones "pointing" to the other router)
+Ping from `RX` `ethI` to `RY` `ethJ` (for each pair of routers in the same network, using the correct interfaces, the ones "pointing" to the other router):
 ```
 RX# ping <ip RY ethJ>
 RY# ping <ip RX ethI>
@@ -384,7 +373,7 @@ R100
 The metrics are used to set the priority of each route. By default, it's `1` (max priority), and it's recommended to set the secondary routes to the number of hops between the origin and the destination (`2` in these cases) (you can leave the rest empty).
 
 
-Let's configure the tables (for each router `RX`, each entry in the routing table)
+Let's configure the tables (for each router `RX`, each entry in the routing table):
 ```
 RX# configure terminal
 RX(config)# ip route <dest> <next hop> <metric>
@@ -402,7 +391,7 @@ RX(config)# no ip route <dest> <next hop>
 
 
 ### Configure the required static routes in the hosts (routing tables)
-(for each host `hstOfiX` connected to router `RY`)
+(for each host `hstOfiX` connected to router `RY`):
 ```
 student@hstOfiX:~$ sudo ip route add default via <ip RY eth0.1>
 ```
@@ -421,7 +410,7 @@ student@hstOfiX:~$ sudo ip route del <dest> <next hop>
 ### Check that the network is connected
 You can both use `ping` and `traceroute` (`traceroute` is more useful for debugging).  
 
-Let's check if it reaches from `hstOfi1` to `hstOfi2`, and vice versa.
+Let's check if it reaches from `hstOfi1` to `hstOfi2`, and vice versa:
 ```
 student@hstOfi1:~$ ping 10.0.A.130
 ```
@@ -429,7 +418,7 @@ student@hstOfi1:~$ ping 10.0.A.130
 student@hstOfi2:~$ ping 10.0.A.2
 ```
 
-Now let's check if it reaches the outside and R100.
+Now let's check if it reaches the outside and R100:
 ```
 student@hstOfi2:~$ ping 10.0.0.A
 ```
@@ -439,8 +428,7 @@ student@hstOfi2:~$ ping 10.0.100.100
 
 
 ### Force a link failure, use the interface configuration command shutdown to disable the interfaces on both the routers connected to the link
-
-Let's cut link between `R1` and `R2` and try to reach from `hstOfi1` to `hstOfi2`
+Let's cut link between `R1` and `R2` and try to reach from `hstOfi1` to `hstOfi2`:
 ```
 R1(config)# interface eth0.3
 R1(config-if)# shutdown
@@ -451,7 +439,7 @@ R2(config)# interface eth0.2
 R2(config-if)# shutdown
 ```
 
-To restore the link.
+To restore the link:
 ```
 R1(config-if)# no shutdown
 ```
@@ -474,8 +462,8 @@ student@uc3m:~$ lightning stop && lightning start RYSCA/p_encam_a
 And then re-configure the IPs of every router and PC the same way as in **PART II**. 
 
 
-### Enable and configure the dynamic routing protocol RIP in each router for each link which contains at least one other router (not PC).
-(for each router `RX` in network `NY` through interface `eth0.Z`)
+### Enable and configure the dynamic routing protocol RIP in each router for each link which contains at least one other router (not PC)
+(for each router `RX` in network `NY` through interface `eth0.Z`):
 ```
 Rx# configure terminal
 Rx(config)# router rip
@@ -484,8 +472,8 @@ Rx(config-router)# network eth0.Z
 ```
 
 
-### Enable and configure the dynamic routing protocol RIP in passive mode in each router for each link that is connected to a PC (where applicable).
-(for each router `RX` in network `NY` through interface `eth0.Z`)
+### Enable and configure the dynamic routing protocol RIP in passive mode in each router for each link that is connected to a PC (where applicable)
+(for each router `RX` in network `NY` through interface `eth0.Z`):
 ```
 Rx# configure terminal
 Rx(config)# router rip
@@ -508,9 +496,7 @@ Note that it takes a while for the RIP algorithm to realize that a link is broke
 
 
 ### Check that it works
-
-Ping from router to router, and from PC to PC.
-
+Ping from router to router, and from PC to PC:
 ```
 student@hstOfi1:~$ ping 10.0.A.130
 ```
@@ -518,7 +504,7 @@ student@hstOfi1:~$ ping 10.0.A.130
 student@hstOfi2:~$ ping 10.0.A.2
 ```
 
-Now let's check if it reaches the outside and R100.
+Now let's check if it reaches the outside and R100:
 ```
 student@hstOfi2:~$ ping 10.0.0.A
 ```
