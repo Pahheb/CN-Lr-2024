@@ -1,6 +1,6 @@
 # Routing Lab
 By Luis Daniel Casais Mezquida & Javier Moreno Yébenes  
-Adapted by Konstantin Rannev
+Adapted by Konstantin Rannev  
 Computer Networks 22/23  
 Bachelor's Degree in Computer Science and Engineering, grp. 89  
 Universidad Carlos III de Madrid
@@ -381,7 +381,7 @@ R100
 |---------|------------------|---------------|:------:|
 | `A`     | `10.0.A.0/24`    | `10.0.0.A`    | 1      |
 
-The metrics are used to set the priority of each route. By default, it's `1` (max priority), and it's recommended to set the secondary routes to the number of hops between the origin and the destination `2` (you can leave the rest empty).
+The metrics are used to set the priority of each route. By default, it's `1` (max priority), and it's recommended to set the secondary routes to the number of hops between the origin and the destination (`2` in these cases) (you can leave the rest empty).
 
 
 Let's configure the tables (for each router `RX`, each entry in the routing table)
@@ -467,7 +467,12 @@ student@hstOfi1:~$ traceroute -n 10.0.A.130
 
 ## Part III: RIP protocol
 
-First remove the static routes previously configured in the routers (`no ip route`), or re-initalize the scenario and re-configure the IPs of every router and PC like in **PART II**.
+First remove the static routes previously configured in the routers (`no ip route`), or re-initalize the scenario by running:
+```
+student@uc3m:~$ lightning stop && lightning start RYSCA/p_encam_a
+```
+And then re-configure the IPs of every router and PC the same way as in **PART II**. 
+
 
 ### Enable and configure the dynamic routing protocol RIP in each router for each link which contains at least one other router (not PC).
 (for each router `RX` in network `NY` through interface `eth0.Z`)
@@ -477,6 +482,8 @@ Rx(config)# router rip
 Rx(config-router)# network <ip NY>
 Rx(config-router)# network eth0.Z
 ```
+
+
 ### Enable and configure the dynamic routing protocol RIP in passive mode in each router for each link that is connected to a PC (where applicable).
 (for each router `RX` in network `NY` through interface `eth0.Z`)
 ```
